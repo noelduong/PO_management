@@ -3052,10 +3052,10 @@
       document.getElementById("summaryPOMonth").innerText = displayMonth;
       document.getElementById("poSummaryArea").style.display = "block";
 
-      currentReceivingOrderNo = orderNo;
+      currentReceivingOrderNo = actualOrderNo;
       showSpinner("Đang tải chi tiết đơn hàng...");
 
-      fetch(WEB_APP_URL + "?action=getOrderDetails&orderNo=" + encodeURIComponent(orderNo))
+      fetch(WEB_APP_URL + "?action=getOrderDetails&orderNo=" + encodeURIComponent(actualOrderNo))
         .then(res => res.json())
         .then(res => {
           hideSpinner();
@@ -4105,7 +4105,7 @@
       document.getElementById("bomSummaryMonth").innerText = dm;
       summary.style.display = "block";
       showSpinner("Đang tải chi tiết đơn hàng...");
-      fetch(WEB_APP_URL + "?action=getOrderDetails&orderNo=" + encodeURIComponent(orderNo))
+      fetch(WEB_APP_URL + "?action=getOrderDetails&orderNo=" + encodeURIComponent(actualOrderNo))
         .then(r => r.json())
         .then(res => {
           hideSpinner();
