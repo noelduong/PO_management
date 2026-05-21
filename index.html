@@ -2135,10 +2135,18 @@
         imgRecord = allImagesData.find(img => matchProduct(img));
       }
 
+      // Smart Overwrite Protection for Image URL
+      const currentVal = imgUrlInput.value.trim();
+      const isAutofilled = !currentVal || allImagesData.some(img => img.link === currentVal);
+
       if (imgRecord && imgRecord.link) {
-        imgUrlInput.value = imgRecord.link;
+        if (isAutofilled) {
+          imgUrlInput.value = imgRecord.link;
+        }
       } else {
-        imgUrlInput.value = ""; // Clear if not found to signal failure cleanly
+        if (isAutofilled) {
+          imgUrlInput.value = ""; // Only clear if it was empty or previously autofilled
+        }
       }
     }
 
@@ -2188,13 +2196,28 @@
         if (firstKey) matchedFabric = fabricMap[firstKey];
       }
 
-      let finalVal = matchedFabric;
-      if (!finalVal) {
-        if (isMapEmpty) finalVal = "(Đang tải data vải từ xưởng, vui lòng thử lại sau ít giây)";
-        else finalVal = "(Chưa tìm thấy thông tin vải - nhập tay)";
+      // Smart Overwrite Protection for Fabric Info
+      const nplInput = document.getElementById("nplInfo");
+      if (nplInput) {
+        const currentVal = nplInput.value.trim();
+        const isPlaceholder = currentVal.startsWith("(Đang tải") || currentVal.startsWith("(Chưa tìm thấy");
+        const isFromMap = Object.values(fabricMap).some(v => v && v.trim() === currentVal);
+        const isAutofilled = !currentVal || isPlaceholder || isFromMap;
+
+        let finalVal = matchedFabric;
+        if (!finalVal) {
+          if (isMapEmpty) finalVal = "(Đang tải data vải từ xưởng, vui lòng thử lại sau ít giây)";
+          else finalVal = "(Chưa tìm thấy thông tin vải - nhập tay)";
+        }
+
+        if (isAutofilled) {
+          if (!matchedFabric && currentVal && !isPlaceholder) {
+            // Keep current value if it is a valid fabric name, rather than replacing with a placeholder
+          } else {
+            nplInput.value = finalVal;
+          }
+        }
       }
-      document.getElementById("nplInfo").value = finalVal;
-    }
 
     function autoFillPrice(productName) {
       const box = document.getElementById('priceRefBox');
@@ -2270,6 +2293,11 @@
         if (!document.getElementById("productName").value) {
           document.getElementById("productName").value = po.productName || po.maSP;
         }
+
+        // Clear imageUrl and nplInfo to allow the fresh PO lookup to populate them
+        document.getElementById("imageUrl").value = "";
+        document.getElementById("nplInfo").value = "";
+
         // Auto-fill price reference from factory data
         autoFillPrice(po.productName || '');
         // NOTE: Color field is left empty — user enters it manually
