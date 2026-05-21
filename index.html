@@ -856,7 +856,11 @@
 
           <div class="form-group" style="grid-column: span 2">
             <label>Link Hình Ảnh SP</label>
-            <input id="imageUrl" placeholder="https://..." />
+            <input id="imageUrl" placeholder="https://..." oninput="updateFormImagePreview(this.value)" />
+            <div id="formImagePreviewContainer" style="margin-top: 10px; display: none; align-items: center; gap: 10px;">
+              <img id="formImagePreview" src="" style="max-height: 80px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); border: 1px solid var(--border);" />
+              <button type="button" class="btn-icon btn-outline" style="border-color:var(--danger)" onclick="clearFormImage()" title="Xóa ảnh"><i class="fas fa-trash" style="color:var(--danger)"></i></button>
+            </div>
           </div>
           <div class="form-group">
             <label>Thông tin NPL</label>
@@ -2144,10 +2148,12 @@
       if (imgRecord && imgRecord.link) {
         if (isAutofilled) {
           imgUrlInput.value = imgRecord.link;
+          updateFormImagePreview(imgRecord.link);
         }
       } else {
         if (isAutofilled) {
           imgUrlInput.value = ""; // Only clear if it was empty or previously autofilled
+          updateFormImagePreview("");
         }
       }
     }
@@ -2297,8 +2303,8 @@
           document.getElementById("productName").value = po.productName || po.maSP;
         }
 
-        // Clear imageUrl and nplInfo to allow the fresh PO lookup to populate them
         document.getElementById("imageUrl").value = "";
+        updateFormImagePreview("");
         document.getElementById("nplInfo").value = "";
 
         // Auto-fill price reference from factory data
@@ -2465,10 +2471,10 @@
         .join("");
     }
 
-    /* ================= PRODUCT FORM ================= */
     function clearProductForm() {
       document.getElementById("productName").value = "";
       document.getElementById("imageUrl").value = "";
+      updateFormImagePreview("");
       document.getElementById("artCode").value = "";
       document.getElementById("color").value = "";
       if (quillEditor) quillEditor.root.innerHTML = "";
@@ -2493,6 +2499,26 @@
 
       document.getElementById("productName").classList.remove("invalid");
       document.getElementById("unitPriceDisplay").classList.remove("invalid");
+    }
+
+    function updateFormImagePreview(url) {
+      const container = document.getElementById("formImagePreviewContainer");
+      const img = document.getElementById("formImagePreview");
+      if (!container || !img) return;
+
+      const trimmedUrl = (url || "").toString().trim();
+      if (trimmedUrl) {
+        img.src = trimmedUrl;
+        container.style.display = "flex";
+      } else {
+        img.src = "";
+        container.style.display = "none";
+      }
+    }
+
+    function clearFormImage() {
+      document.getElementById("imageUrl").value = "";
+      updateFormImagePreview("");
     }
 
     function saveProduct() {
@@ -2573,6 +2599,7 @@
       const p = orderItems[index];
       document.getElementById("productName").value = p.productName;
       document.getElementById("imageUrl").value = p.imageUrl;
+      updateFormImagePreview(p.imageUrl);
       document.getElementById("artCode").value = p.artCode;
       document.getElementById("color").value = p.color;
       if (quillEditor) {
