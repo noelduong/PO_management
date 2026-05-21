@@ -2595,8 +2595,7 @@
             <th rowspan="2">Màu</th>
             ${allSizes.length > 0 ? `<th colspan="${allSizes.length}">Tỉ Lệ Size</th>` : ""}
             <th rowspan="2">SL</th>
-            <th rowspan="2">Đơn Giá</th>
-            <th rowspan="2">VAT</th>
+            <th rowspan="2">Đơn Giá<br>(Đã bao gồm Thuế)</th>
             <th rowspan="2">Thành tiền</th>
             <th rowspan="2">Thông tin NPL</th>
             <th rowspan="2">Ghi Chú</th>
@@ -2630,7 +2629,6 @@
         ${allSizes.map((s) => `<td>${it.sizeData[s] ? `<b>${it.sizeData[s]}</b>` : `<span style="color:#ccc">-</span>`}</td>`).join("")}
         <td style="font-weight:bold; color:var(--primary)">${it.totalQty}</td>
         <td class="text-right">${formatMoney(it.unitPrice)}</td>
-        <td class="text-center">${document.getElementById('vatRate').value || '8'}%</td>
         <td class="text-right" style="font-weight:bold; color:var(--accent)">${formatMoney(lineTotal)}</td>
         <td>${it.nplInfo || "-"}</td>
         <td class="text-left preview-note" style="max-width:200px; white-space:normal;">${it.note || "-"}</td>
@@ -2642,9 +2640,9 @@
         </tbody>
         <tfoot>
           <tr style="background-color: var(--primary); color: white;">
-            <td colspan="${5 + allSizes.length}" class="text-right" style="font-size:1.1rem"><strong>TỔNG CỘNG</strong></td>
+            <td colspan="${6 + allSizes.length}" class="text-right" style="font-size:1.1rem"><strong>TỔNG CỘNG</strong></td>
             <td style="font-size:1.1rem"><strong>${orderItems.reduce((a, b) => a + b.totalQty, 0)}</strong></td>
-            <td class="text-right" colspan="3" style="font-size:1.2rem; color:white; white-space:nowrap;"><strong>${formatMoney(total)} đ</strong></td>
+            <td class="text-right" colspan="2" style="font-size:1.2rem; color:white; white-space:nowrap;"><strong>${formatMoney(total)} đ</strong></td>
             <td colspan="2"></td>
           </tr>
         </tfoot>
@@ -3297,7 +3295,6 @@
         ${allSizes.map((s) => `<td class="${it.sizeData[s] ? "" : "empty-td"}">${it.sizeData[s] || ""}</td>`).join("")}
         <td><b>${it.totalQty}</b></td>
         <td class="text-right">${formatMoney(it.unitPrice)}</td>
-        <td class="text-center">${document.getElementById('vatRate').value}%</td>
         <td class="text-right" style="font-weight:bold">${formatMoney(lineTotal)}</td>
         <td>${it.nplInfo || ""}</td>
         <td>${delStr}</td>
@@ -3584,8 +3581,7 @@
           <th rowspan="2">Màu</th>
           ${allSizes.length > 0 ? `<th colspan="${allSizes.length}">Tỉ Lệ Size</th>` : ""}
           <th rowspan="2">SL</th>
-          <th rowspan="2">Đơn Giá</th>
-          <th rowspan="2">VAT</th>
+          <th rowspan="2">Đơn Giá<br>(Đã bao gồm Thuế)</th>
           <th rowspan="2">Thành tiền</th>
           <th rowspan="2">Thông tin NPL</th>
           <th rowspan="2">T.Gian Giao</th>
@@ -3605,7 +3601,7 @@
         <tr>
           <td colspan="${5 + allSizes.length}" class="text-right"><strong>TỔNG CỘNG</strong></td>
           <td><strong>${orderItems.reduce((a, b) => a + b.totalQty, 0)}</strong></td>
-          <td class="text-right" colspan="3" style="font-weight:bold; font-size:12px; white-space:nowrap;"><strong>${formatMoney(total)} đ</strong></td>
+          <td class="text-right" colspan="2" style="font-weight:bold; font-size:12px; white-space:nowrap;"><strong>${formatMoney(total)} đ</strong></td>
           <td colspan="3"></td>
         </tr>
       </tfoot>
