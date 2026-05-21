@@ -3644,8 +3644,36 @@ function saveOrderData(payload) {
     const items = payload.items || [];
     const rowsToAppend = [];
     
-    // Nếu là edit, xóa toàn bộ các dòng chi tiết cũ của PO này
+    // Nếu là edit, lưu lại các trạng thái duyệt hiện tại của chi tiết PO để tránh bị mất khi cập nhật
+    const existingDetailsMap = {};
     const detailsDataRange = detailSheet.getDataRange().getValues();
+    if (detailsDataRange.length > 1) {
+      const oldHeaders = detailsDataRange[0];
+      const statusVaiColIdx = oldHeaders.indexOf("Trạng thái Vải");
+      const statusBoColIdx = oldHeaders.indexOf("Trạng thái Bo");
+      const statusNplColIdx = oldHeaders.indexOf("Đóng bộ NPL");
+      const syncDateColIdx = oldHeaders.indexOf("Ngày đồng bộ");
+      const syncNoteColIdx = oldHeaders.indexOf("Ghi chú duyệt");
+
+      for (let i = 1; i < detailsDataRange.length; i++) {
+        if (String(detailsDataRange[i][0]).trim() === String(payload.orderNo).trim()) {
+          const productName = String(detailsDataRange[i][1]).trim();
+          const artCode = String(detailsDataRange[i][3]).trim();
+          const color = String(detailsDataRange[i][4]).trim();
+          const key = `${productName}|${artCode}|${color}`;
+          
+          existingDetailsMap[key] = {
+            statusVai: statusVaiColIdx !== -1 ? detailsDataRange[i][statusVaiColIdx] : "Pending",
+            statusBo: statusBoColIdx !== -1 ? detailsDataRange[i][statusBoColIdx] : "Pending",
+            statusNpl: statusNplColIdx !== -1 ? detailsDataRange[i][statusNplColIdx] : "Pending",
+            syncDate: syncDateColIdx !== -1 ? detailsDataRange[i][syncDateColIdx] : "",
+            syncNote: syncNoteColIdx !== -1 ? detailsDataRange[i][syncNoteColIdx] : ""
+          };
+        }
+      }
+    }
+
+    // Xóa toàn bộ các dòng chi tiết cũ của PO này
     for (let i = detailsDataRange.length - 1; i >= 1; i--) {
       if (String(detailsDataRange[i][0]).trim() === String(payload.orderNo).trim()) {
         detailSheet.deleteRow(i + 1);
@@ -3732,10 +3760,21 @@ function saveOrderData(payload) {
       setVal("T.Gian Giao", deliveryDateStr);
       setVal("Ghi Chú", it.note);
       
-      // Mặc định các cột duyệt là Pending
-      if (currentHeaders.indexOf("Trạng thái Vải") >= 0) rowData[currentHeaders.indexOf("Trạng thái Vải")] = "Pending";
-      if (currentHeaders.indexOf("Trạng thái Bo") >= 0) rowData[currentHeaders.indexOf("Trạng thái Bo")] = "Pending";
-      if (currentHeaders.indexOf("Đóng bộ NPL") >= 0) rowData[currentHeaders.indexOf("Đóng bộ NPL")] = "Pending";
+      // Khôi phục trạng thái cũ nếu tồn tại, nếu không thì để mặc định
+      const itemKey = `${it.productName || ""}|${it.artCode || ""}|${it.color || ""}`;
+      const savedStatus = existingDetailsMap[itemKey] || {
+        statusVai: "Pending",
+        statusBo: "Pending",
+        statusNpl: "Pending",
+        syncDate: "",
+        syncNote: ""
+      };
+
+      setVal("Trạng thái Vải", savedStatus.statusVai || "Pending");
+      setVal("Trạng thái Bo", savedStatus.statusBo || "Pending");
+      setVal("Đóng bộ NPL", savedStatus.statusNpl || "Pending");
+      setVal("Ngày đồng bộ", savedStatus.syncDate || "");
+      setVal("Ghi chú duyệt", savedStatus.syncNote || "");
       
       // Điền thông tin size vào đúng cột tương ứng
       if (it.sizeData) {

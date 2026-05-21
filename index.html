@@ -2908,31 +2908,75 @@
             document.getElementById('orderNo').readOnly = true;
 
             try {
-              const d = new Date(order.orderDate);
-              const dStr = d.toISOString().split('T')[0];
-              document.getElementById('orderDate').value = dStr;
+              let dVal = order.orderDate;
+              if (dVal) {
+                let dStr = "";
+                if (dVal instanceof Date) {
+                  dStr = dVal.toISOString().split('T')[0];
+                } else {
+                  // If it's a string, try parsing DD/MM/YYYY or standard format
+                  let parts = dVal.toString().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                  if (parts) {
+                    dStr = parts[3] + "-" + parts[2].padStart(2, "0") + "-" + parts[1].padStart(2, "0");
+                  } else {
+                    let d = new Date(dVal);
+                    if (!isNaN(d.getTime())) {
+                      dStr = d.toISOString().split('T')[0];
+                    }
+                  }
+                }
+                if (dStr) {
+                  document.getElementById('orderDate').value = dStr;
+                }
+              }
             } catch (e) { }
 
-            // Chuyển poMonth từ "5/2026" sang "2026-05" cho input type=month
+            // Chuyển poMonth sang định dạng YYYY-MM
             let rawMonth = order.poMonth || "";
-            if (rawMonth && rawMonth.includes("/")) {
-              const parts = rawMonth.split("/");
-              rawMonth = parts[1] + "-" + parts[0].padStart(2, "0");
+            if (rawMonth) {
+              if (rawMonth instanceof Date) {
+                let y = rawMonth.getFullYear();
+                let m = String(rawMonth.getMonth() + 1).padStart(2, "0");
+                rawMonth = `${y}-${m}`;
+              } else {
+                rawMonth = rawMonth.toString().trim();
+                let partsSlash = rawMonth.split("/");
+                let partsDash = rawMonth.split("-");
+                if (partsSlash.length === 2) {
+                  if (partsSlash[0].length === 4) { // YYYY/MM
+                    rawMonth = partsSlash[0] + "-" + partsSlash[1].padStart(2, "0");
+                  } else { // MM/YYYY
+                    rawMonth = partsSlash[1] + "-" + partsSlash[0].padStart(2, "0");
+                  }
+                } else if (partsDash.length === 2) {
+                  if (partsDash[0].length === 4) { // YYYY-MM
+                    rawMonth = partsDash[0] + "-" + partsDash[1].padStart(2, "0");
+                  } else { // MM-YYYY
+                    rawMonth = partsDash[1] + "-" + partsDash[0].padStart(2, "0");
+                  }
+                }
+              }
             }
             document.getElementById('poMonth').value = rawMonth;
             document.getElementById('orderType').value = order.orderType || "";
             document.getElementById('productTier').value = order.productTier || "";
             document.getElementById('creatorName').value = order.creatorName || "";
-            document.getElementById('companyName').value = order.companyName || "";
 
             // Chọn đối tác đúng
             const partnerSelect = document.getElementById('partnerName');
-            partnerSelect.value = order.partnerName;
+            partnerSelect.value = order.partnerName || "";
+
+            // Giữ lại các giá trị đã lưu của đơn hàng để tránh bị onPartnerChange ghi đè bằng các giá trị trống hoặc mặc định
+            const savedCompanyName = order.companyName || "";
+            const savedPartnerAddress = order.partnerAddress || "";
+
             onPartnerChange(order.partnerName);
 
-            // Set lại partnerAddress SAU onPartnerChange để không bị ghi đè
-            if (order.partnerAddress) {
-              document.getElementById('partnerAddress').value = order.partnerAddress;
+            if (savedCompanyName) {
+              document.getElementById('companyName').value = savedCompanyName;
+            }
+            if (savedPartnerAddress) {
+              document.getElementById('partnerAddress').value = savedPartnerAddress;
             }
 
             let vatObj = document.getElementById('vatRate');
@@ -2951,13 +2995,29 @@
                 }
               });
 
+              // Chuẩn hóa ngày giao hàng thành YYYY-MM-DD
+              let delDate = item["T.Gian Giao"] || "";
+              if (delDate) {
+                try {
+                  const d = new Date(delDate);
+                  if (!isNaN(d.getTime())) {
+                    delDate = d.toISOString().split('T')[0];
+                  } else {
+                    let parts = delDate.toString().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if (parts) {
+                      delDate = parts[3] + "-" + parts[2].padStart(2, "0") + "-" + parts[1].padStart(2, "0");
+                    }
+                  }
+                } catch(e){}
+              }
+
               orderItems.push({
                 productName: item["Tên SP"] || "",
                 imageUrl: item["Link Ảnh"] || "",
                 artCode: item["Art Code"] || "",
                 color: item["Màu"] || "",
                 nplInfo: item["Thông tin NPL"] || "",
-                deliveryDate: item["T.Gian Giao"] || "",
+                deliveryDate: delDate,
                 unitPrice: Number(item["Đơn giá"]) || 0,
                 totalQty: totalQty,
                 note: item["Ghi Chú"] || "",
