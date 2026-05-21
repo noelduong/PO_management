@@ -2085,8 +2085,10 @@
 
       let code = poCode ? poCode.toString().toUpperCase().trim() : "";
       if (!code) {
-        const artVal = document.getElementById("artCode").value.trim();
-        code = artVal.split(" - ")[0].trim().toUpperCase();
+        code = document.getElementById("artCode").value.trim().toUpperCase();
+      }
+      if (code.includes(" - ")) {
+        code = code.split(" - ")[0].trim();
       }
       code = removeVietnameseTones(code).replace(/\s+/g, '');
 
@@ -2561,6 +2563,14 @@
       document.getElementById("unitPriceDisplay").value = formatMoney(
         p.unitPrice,
       );
+
+      // Auto-run lookups on edit if fields are empty or placeholders
+      if (!p.imageUrl && p.artCode) {
+        if (typeof autoFillImage === 'function') autoFillImage(p.artCode, p.color);
+      }
+      if (!p.nplInfo || p.nplInfo.startsWith("(Chưa tìm thấy") || p.nplInfo.startsWith("(Đang tải")) {
+        autoFillNPL(p);
+      }
 
       sizeConfigRows = [];
       for (let size in p.sizeData) {

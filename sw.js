@@ -1,4 +1,4 @@
-const CACHE_NAME = 'polomanor-v12';
+const CACHE_NAME = 'polomanor-v14';
 const ASSETS = [
   './',
   './index.html',
