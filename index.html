@@ -3503,6 +3503,13 @@
     
     tr:nth-child(even) { background-color: #fafafa !important; -webkit-print-color-adjust: exact; }
 
+    tfoot {
+      display: table-row-group;
+    }
+    tfoot tr {
+      page-break-inside: avoid;
+    }
+
     /* TERMS */
     .terms {
       margin-bottom: 30px;
