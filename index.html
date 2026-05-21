@@ -902,7 +902,11 @@
                 <input type="text" id="unitPriceDisplay" placeholder="0" oninput="formatPriceInput(this)" />
                 <input type="hidden" id="unitPrice" />
               </div>
-              <input type="hidden" id="vatRate" value="8" />
+              <div style="flex: 0 0 120px">
+                <label>Thuế VAT (%)</label>
+                <input type="number" id="vatRate" value="8" min="0" max="100" step="0.5" oninput="renderPreview()"
+                  style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:0.95rem;background:#fff;color:var(--text);text-align:center;" />
+              </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
@@ -2626,7 +2630,7 @@
         ${allSizes.map((s) => `<td>${it.sizeData[s] ? `<b>${it.sizeData[s]}</b>` : `<span style="color:#ccc">-</span>`}</td>`).join("")}
         <td style="font-weight:bold; color:var(--primary)">${it.totalQty}</td>
         <td class="text-right">${formatMoney(it.unitPrice)}</td>
-        <td class="text-center">8%</td>
+        <td class="text-center">${document.getElementById('vatRate').value || '8'}%</td>
         <td class="text-right" style="font-weight:bold; color:var(--accent)">${formatMoney(lineTotal)}</td>
         <td>${it.nplInfo || "-"}</td>
         <td class="text-left preview-note" style="max-width:200px; white-space:normal;">${it.note || "-"}</td>
@@ -2687,7 +2691,10 @@
         companyName: company,
         partnerName: partner,
         partnerAddress: document.getElementById("partnerAddress").value,
-        vatRate: 8,
+        vatRate: (function() {
+          const val = parseFloat(document.getElementById('vatRate').value);
+          return isNaN(val) ? 8 : val;
+        })(),
         subtotal: total,
         vatAmount: 0,
         total: total,
@@ -2931,7 +2938,7 @@
             }
 
             let vatObj = document.getElementById('vatRate');
-            if (vatObj) vatObj.value = order.vatRate || "8";
+            if (vatObj) vatObj.value = (order.vatRate !== undefined && order.vatRate !== null && order.vatRate !== "") ? order.vatRate : "8";
 
             orderItems = [];
             res.data.forEach(item => {
@@ -3290,7 +3297,7 @@
         ${allSizes.map((s) => `<td class="${it.sizeData[s] ? "" : "empty-td"}">${it.sizeData[s] || ""}</td>`).join("")}
         <td><b>${it.totalQty}</b></td>
         <td class="text-right">${formatMoney(it.unitPrice)}</td>
-        <td class="text-center">8%</td>
+        <td class="text-center">${document.getElementById('vatRate').value}%</td>
         <td class="text-right" style="font-weight:bold">${formatMoney(lineTotal)}</td>
         <td>${it.nplInfo || ""}</td>
         <td>${delStr}</td>
@@ -3614,7 +3621,7 @@
             return pd.paymentTermsOrder.split('\n').map(line => '<p>' + line.trim() + '</p>').join('');
           }
           // Fallback generic terms if no data found
-          return '<p>- Đơn giá đã bao gồm chi phí vận chuyển nội thành TP.HCM và 8% VAT.</p>' +
+          return '<p>- Đơn giá đã bao gồm chi phí vận chuyển nội thành TP.HCM và ' + (document.getElementById('vatRate').value !== "" ? document.getElementById('vatRate').value : '8') + '% VAT.</p>' +
             '<p>- Hình thức thanh toán: Chuyển khoản (Được thanh toán theo mức công nợ gối đầu đã thỏa thuận).</p>';
         })()}
       

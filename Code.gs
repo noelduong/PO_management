@@ -3803,7 +3803,7 @@ function getOrderHistory() {
         companyName: data[i][4],
         partnerName: data[i][5],
         partnerAddress: data[i][6] || "",
-        vatRate: data[i][7] || "8",
+        vatRate: (data[i][7] !== undefined && data[i][7] !== null && data[i][7] !== "") ? data[i][7] : "8",
         total: data[i][10] || 0,
         poMonth: m,
         orderType: data[i][12] || "",
