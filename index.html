@@ -1358,7 +1358,7 @@
 
 
     function initDateFields() {
-      const today = new Date().toISOString().split("T")[0];
+      const today = formatLocalDate(new Date());
       document.getElementById("orderDate").value = today;
 
       // Tự động tạo mã đơn hàng duy nhất
@@ -2382,6 +2382,30 @@
       return Number(v || 0).toLocaleString("vi-VN");
     }
 
+    function formatLocalDate(dVal) {
+      if (!dVal) return "";
+      try {
+        if (typeof dVal === 'string') {
+          let parts = dVal.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+          if (parts) {
+            return parts[3] + "-" + parts[2].padStart(2, "0") + "-" + parts[1].padStart(2, "0");
+          }
+          let matchIso = dVal.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+          if (matchIso && !dVal.includes('T')) {
+            return matchIso[1] + "-" + matchIso[2].padStart(2, "0") + "-" + matchIso[3].padStart(2, "0");
+          }
+        }
+        let d = dVal instanceof Date ? dVal : new Date(dVal);
+        if (!isNaN(d.getTime())) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+      } catch (e) {}
+      return "";
+    }
+
     function formatPriceInput(el) {
       let val = el.value.replace(/[^0-9]/g, "");
       document.getElementById("unitPrice").value = val;
@@ -2947,26 +2971,9 @@
             document.getElementById('orderNo').readOnly = true;
 
             try {
-              let dVal = order.orderDate;
-              if (dVal) {
-                let dStr = "";
-                if (dVal instanceof Date) {
-                  dStr = dVal.toISOString().split('T')[0];
-                } else {
-                  // If it's a string, try parsing DD/MM/YYYY or standard format
-                  let parts = dVal.toString().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-                  if (parts) {
-                    dStr = parts[3] + "-" + parts[2].padStart(2, "0") + "-" + parts[1].padStart(2, "0");
-                  } else {
-                    let d = new Date(dVal);
-                    if (!isNaN(d.getTime())) {
-                      dStr = d.toISOString().split('T')[0];
-                    }
-                  }
-                }
-                if (dStr) {
-                  document.getElementById('orderDate').value = dStr;
-                }
+              let dStr = formatLocalDate(order.orderDate);
+              if (dStr) {
+                document.getElementById('orderDate').value = dStr;
               }
             } catch (e) { }
 
@@ -3035,20 +3042,7 @@
               });
 
               // Chuẩn hóa ngày giao hàng thành YYYY-MM-DD
-              let delDate = item["T.Gian Giao"] || "";
-              if (delDate) {
-                try {
-                  const d = new Date(delDate);
-                  if (!isNaN(d.getTime())) {
-                    delDate = d.toISOString().split('T')[0];
-                  } else {
-                    let parts = delDate.toString().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-                    if (parts) {
-                      delDate = parts[3] + "-" + parts[2].padStart(2, "0") + "-" + parts[1].padStart(2, "0");
-                    }
-                  }
-                } catch(e){}
-              }
+              let delDate = formatLocalDate(item["T.Gian Giao"]);
 
               orderItems.push({
                 productName: item["Tên SP"] || "",
